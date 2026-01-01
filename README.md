@@ -1,6 +1,6 @@
-[hint_app_student_20260101.html](https://github.com/user-attachments/files/24399581/hint_app_student_20260101.html)
+[hint_app_student_20260101.html](https://github.com/user-attachments/files/24399651/hint_app_student_20260101.html)
 <!doctype html>
-<html lang="ja" style="--headerH: 58px;"><head>
+<html lang="ja" style="--real-vh: 708px; --headerH: 58px;"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>画像ヒント＋4択（楕円・四角ヒント対応 / 編集つき）</title>
@@ -53,34 +53,51 @@ hr{border:none;border-top:1px solid #e2e8f0;margin:14px 0;}
 #hintTools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;}
 #hintText{width:100%;min-height:64px;font-size:16px;padding:10px 12px;border:1px solid #cbd5e1;border-radius:12px;box-sizing:border-box;}
 </style>
+
+<style id="responsiveSafeViewport">
+:root{ --real-vh: 100vh; }
+html,body{height:100%;}
+/* iOS Safari の実表示高さに合わせる */
+.appRoot{height:var(--real-vh);}
+
+/* 下部UIは安全領域を確保 */
+.safeBottomPad{ padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); }
+
+/* iPad/iPhone向け：ボタンが見切れにくいサイズ */
+button, .btn, .smallBtn{
+  font-size: clamp(14px, 2.1vw, 18px);
+  padding: clamp(10px, 2.0vw, 14px) clamp(12px, 2.4vw, 18px);
+}
+</style>
+
 <style>#editBtn,#editModal{display:none !important;}</style>
 </head>
-<body>
+<body class="appRoot">
 
 <header>
-  <div id="qText">『どんぐりの背比べ』このことわざの意味は？</div>
+  <div id="qText">『猫に小判（ねこにこばん）』　このことわざの意味は？</div>
   <button id="editBtn">編集</button>
 </header>
 
 <main>
   <div id="imageWrap">
     <canvas id="canvas" width="1536" height="1024" style="width: 819px; height: 546px; display: block; margin-left: auto; margin-right: auto;"></canvas>
-    <div id="overlayMessage" class="ok" style="display: flex;">終了</div>
-    <div id="toast" style="display: none;">大きな木だ。この木の大きさに比べたら、どんぐりの大きさの違いなんて無いようなものだ。</div>
+    <div id="overlayMessage" class="ok" style="display: none;">終了</div>
+    <div id="toast" style="display: none;"></div>
   </div>
   <div id="controls">
-    <button id="knowBtn" disabled="">答えがわかった</button>
+    <button id="knowBtn">答えがわかった</button>
     <button id="nextBtn" class="secondary" style="display: none;">次へ</button>
-    <button id="restartBtn" class="secondary" style="display: inline-block;">もう一回</button>
+    <button id="restartBtn" class="secondary" style="display: none;">もう一回</button>
   </div>
 </main>
 
 <div id="choices" style="display: none;">
   <div class="panel">
-    <div class="choice" data-i="0">どれもほとんど差がなく、くらべても意味がないこと</div>
-    <div class="choice" data-i="1">どんぐりの大きさを正確に調べる遊び</div>
-    <div class="choice" data-i="2">小さいもの同士でも、がんばって勝負すること</div>
-    <div class="choice" data-i="3">成長すれば、大きな差が生まれるということ</div>
+    <div class="choice" data-i="0">猫は光るものが好きということ</div>
+    <div class="choice" data-i="1">貴重なものでも、価値の分からないものに与えては意味がないということ</div>
+    <div class="choice" data-i="2">努力すれば、だれでも宝物を手に入れられること</div>
+    <div class="choice" data-i="3">ねこかわいい</div>
   </div>
 </div>
 
@@ -103,11 +120,11 @@ hr{border:none;border-top:1px solid #e2e8f0;margin:14px 0;}
     </div>
 
     <div class="tabs">
-      <button class="tabBtn" data-tab="tabQ">問題設定</button>
-      <button class="tabBtn active" data-tab="tabH">画像・ヒント</button>
+      <button class="tabBtn active" data-tab="tabQ">問題設定</button>
+      <button class="tabBtn" data-tab="tabH">画像・ヒント</button>
     </div>
 
-    <div id="tabQ" class="tabPanel">
+    <div id="tabQ" class="tabPanel active">
       <hr>
       <div class="field">
         <label>問題文（1行）</label>
@@ -130,7 +147,7 @@ hr{border:none;border-top:1px solid #e2e8f0;margin:14px 0;}
       </div>
     </div>
 
-    <div id="tabH" class="tabPanel active">
+    <div id="tabH" class="tabPanel">
       <hr>
       <div class="field">
         <label>問題の画像（この問題専用）</label>
@@ -141,15 +158,15 @@ hr{border:none;border-top:1px solid #e2e8f0;margin:14px 0;}
 
       <div class="field">
         <label>ヒント領域（楕円・四角）</label>
-        <div id="editCanvasWrap"><canvas id="editCanvas" width="1536" height="1024" style="width: 765px; height: 510px; display: block; margin-left: auto; margin-right: auto;"></canvas></div>
+        <div id="editCanvasWrap"><canvas id="editCanvas" width="1536" height="1024" style="width: 1536px; height: 1024px; display: block; margin-left: auto; margin-right: auto;"></canvas></div>
 
         <div id="hintTools">
           <span class="badge" id="selBadge">未選択</span>
           <button class="smallBtn secondary" id="btnNewEllipse">新規楕円</button>
           <button class="smallBtn secondary" id="btnNewRect">新規四角</button>
           <button class="smallBtn secondary" id="btnNewPoly">新規多角形</button>
-          <button class="smallBtn secondary" id="btnPolyDone" style="display: none;">多角形確定</button>
-          <button class="smallBtn secondary" id="btnPolyUndo" style="display: none;">1点戻す</button>
+          <button class="smallBtn secondary" id="btnPolyDone" style="display:none;">多角形確定</button>
+          <button class="smallBtn secondary" id="btnPolyUndo" style="display:none;">1点戻す</button>
           <button class="smallBtn secondary" id="btnDelete">削除</button>
           <button class="smallBtn secondary" id="btnClearHints">全消し</button>
         </div>
@@ -167,6 +184,20 @@ hr{border:none;border-top:1px solid #e2e8f0;margin:14px 0;}
 </div>
 
 <script>
+function updateRealVH(){
+  try{
+    const vv = window.visualViewport;
+    const h = vv ? vv.height : window.innerHeight;
+    document.documentElement.style.setProperty("--real-vh", h + "px");
+  }catch(e){}
+}
+updateRealVH();
+window.addEventListener("resize", updateRealVH, {passive:true});
+if(window.visualViewport){
+  window.visualViewport.addEventListener("resize", updateRealVH, {passive:true});
+}
+
+
 /* ===== 設定 ===== */
 const ADMIN_PASSCODE = ""; // disabled in exported file
 const STORAGE_KEY = "hintQuiz.questions.v4";
@@ -547,7 +578,6 @@ exportHtmlBtn.addEventListener("click", ()=>{
 
     // 3) 編集ボタン・編集モーダルを隠す
     out = out.replace("</head>", "<style>#editBtn,#editModal{display:none !important;}</style>\n</head>");
-
     const blob = new Blob([out], {type:"text/html"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
