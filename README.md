@@ -1135,4 +1135,28 @@ editCanvas.addEventListener("pointermove", (e)=>{
       hnt.rx = Math.max(8, Math.abs(p.x - hnt.cx));
       hnt.ry = Math.max(8, Math.abs(p.y - hnt.cy));
     }else{
-      hnt.w = Math.max(8, p.
+      hnt.w = Math.max(8, p.x - hnt.x);
+      hnt.h = Math.max(8, p.y - hnt.y);
+    }
+  }
+  saveQuestions();
+  drawEdit();
+});
+
+editCanvas.addEventListener("pointerup", ()=>{
+  if(dragMode === "create"){
+    // 1つ作成したら作成モードを解除
+    setCreateMode(null);
+  }
+  dragMode = null;
+  dragStart = null;
+  creatingHintIndex = -1;
+});
+
+/* ===== 初期表示 ===== */
+renderQuestion();
+</script>
+
+
+
+</body></html>
