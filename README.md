@@ -59,7 +59,7 @@ hr{border:none;border-top:1px solid #e2e8f0;margin:14px 0;}
   <div id="imageWrap">
     <canvas id="canvas" width="1536" height="1024" style="width: 819px; height: 546px; display: block; margin-left: auto; margin-right: auto;"></canvas>
     <div id="overlayMessage" style="display: none;"></div>
-    <div id="toast" style="display: none;">純金の小判だ。猫にこの価値がわかるのだろうか？</div>
+    <div id="toast" style="display: none;">配布用HTMLを書き出しました</div>
   </div>
   <div id="controls">
     <button id="knowBtn">答えがわかった</button>
@@ -82,7 +82,7 @@ hr{border:none;border-top:1px solid #e2e8f0;margin:14px 0;}
   <div class="box">
     <div class="row" style="justify-content:space-between;">
       <div class="row">
-        <span class="badge" id="editIndexBadge">問題 2 / 10</span>
+        <span class="badge" id="editIndexBadge">問題 1 / 10</span>
         <label class="row" style="gap:6px;font-size:14px;color:#0f172a;">
           <input type="checkbox" id="editEnabled">この問題を使う
         </label>
@@ -134,7 +134,7 @@ hr{border:none;border-top:1px solid #e2e8f0;margin:14px 0;}
 
       <div class="field">
         <label>ヒント領域（楕円・四角）</label>
-        <div id="editCanvasWrap"><canvas id="editCanvas" width="1536" height="1024" style="width: 765px; height: 510px; display: block; margin-left: auto; margin-right: auto;"></canvas></div>
+        <div id="editCanvasWrap"><canvas id="editCanvas" width="1536" height="1024" style="width: 1536px; height: 1024px; display: block; margin-left: auto; margin-right: auto;"></canvas></div>
 
         <div id="hintTools">
           <span class="badge" id="selBadge">未選択</span>
