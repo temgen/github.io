@@ -1,4 +1,4 @@
-[Uploading hint_app_student_20260101 (1).html…]()
+[hint_app_student_20260101.html](https://github.com/user-attachments/files/24399736/hint_app_student_20260101.html)
 <!doctype html>
 <html lang="ja" style="--real-vh: 708px; --headerH: 58px;"><head>
 <meta charset="utf-8">
@@ -117,7 +117,7 @@ button, .btn, .smallBtn{
     <div class="choice" data-i="0">猫は光るものが好きということ</div>
     <div class="choice" data-i="1">貴重なものでも、価値の分からないものに与えては意味がないということ</div>
     <div class="choice" data-i="2">努力すれば、だれでも宝物を手に入れられること</div>
-    <div class="choice" data-i="3">テスト</div>
+    <div class="choice" data-i="3">テスト２</div>
   </div>
 </div>
 
