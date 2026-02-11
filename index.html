@@ -2,7 +2,7 @@
 <html lang="ja" style="--real-vh: 708px; --controlsH: 72px; --headerH: 58px;"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>hint quiz v45c</title>
+<title>画像ヒント＋4択（楕円・四角ヒント対応 / 編集つき）</title>
 <style>
 :root{ --headerH:56px; --controlsH:72px; --pad:10px;  --real-vh:100vh;}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto;background:#f8fafc;overflow:hidden;}
@@ -65,10 +65,44 @@ body.reviewing .overlay {
 /* 復習表示では画面を暗くしない（choicesオーバーレイ背景を透明に） */
 #choices.review { background: transparent !important; }
 
+
+/* ===== 正解後レビュー内：所要時間表示 ===== */
+#reviewTime{
+  display:none;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.92);
+  color: #0f172a;
+  font-size: 18px;
+  line-height: 1.35;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  text-align: center;
+  white-space: pre-line;
+}
+#choices.review #reviewTime{ display:block; }
+
+
+/* ===== 正解後レビュー内：所要時間表示 ===== */
+#reviewTime{
+  display:none;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.92);
+  color: #0f172a;
+  font-size: 18px;
+  line-height: 1.35;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  text-align: center;
+  white-space: pre-line;
+}
+#choices.review #reviewTime{ display:block; }
+
 </style>
 <style>#editBtn,#editModal{display:none !important;}</style>
 </head>
-<body class="reviewing">
+<body>
 
 <header>
   <div id="qText">『二兎（にと）を追う者は一兎（いっと）をも得（え）ず』このことわざの意味は？</div>
@@ -78,22 +112,23 @@ body.reviewing .overlay {
 <main>
   <div id="imageWrap">
     <canvas id="canvas" width="1536" height="1024" style="width: 819px; height: 546px; display: block; margin-left: auto; margin-right: auto;"></canvas>
-    <div id="overlayMessage" class="ok" style="display: none;">正解！</div>
+    <div id="overlayMessage" style="display: none;"></div>
     <div id="toast" style="display: none;"></div>
   </div>
   <div id="controls">
-    <button id="knowBtn" disabled="">答えがわかった</button>
-    <button id="nextBtn" class="secondary" style="display: inline-block;" data-mode="">次へ</button>
+    <button id="knowBtn">答えがわかった</button>
+    <button id="nextBtn" class="secondary" style="display:none;" data-mode="">次へ</button>
     <button id="restartBtn" class="secondary" style="display:none;">もう一回</button>
   </div>
 </main>
 
-<div id="choices" class="review" style="display: flex;">
+<div id="choices" style="display: none;">
   <div class="panel">
     <div class="choice" data-i="0">二つのことを、同時に成功させること</div>
     <div class="choice" data-i="1">ほとんど差がなく、くらべても意味がないこと</div>
     <div class="choice" data-i="2">目標は、たくさん持つとよいこと</div>
-    <div class="choice correct" data-i="3">よくばると、結局なにも得られないこと</div>
+    <div class="choice" data-i="3">よくばると、結局なにも得られないこと</div>
+    <div id="reviewTime"></div>
   </div>
 </div>
 
@@ -348,6 +383,8 @@ const knowBtn = document.getElementById("knowBtn");
 const nextBtn = document.getElementById("nextBtn");
 const restartBtn = document.getElementById("restartBtn");
 const choices = document.getElementById("choices");
+
+const reviewTime = document.getElementById("reviewTime");
 const overlay = document.getElementById("overlayMessage");
 const toast = document.getElementById("toast");
 
@@ -356,8 +393,14 @@ const ctx = canvas.getContext("2d");
 let dispImg = new Image();
 
 let qi = 0;
+
+let questionStart = 0;
+let totalTimeMs = 0;
+let correctTimer = 0;
 let solved = false;
-let foundHints = new Set(); // indices of found hints for current question
+let foundHints = new Set();
+  clearReviewTime();
+  if(correctTimer){ clearTimeout(correctTimer); correctTimer=0; } // indices of found hints for current question
 let toastTimer = null;
 
 function clientToCanvas(cvs, clientX, clientY){
@@ -461,7 +504,9 @@ function drawStudent(){
     });
     ctx.restore();
   }
+  questionStart = (window.performance && performance.now) ? performance.now() : Date.now();
 }
+
 
 function showToast(text){
   toast.textContent = text || "";
@@ -497,6 +542,8 @@ function renderQuestion(){
   overlay.style.display = "none";
   toast.style.display = "none";
   foundHints = new Set();
+  clearReviewTime();
+  if(correctTimer){ clearTimeout(correctTimer); correctTimer=0; }
 
   solved = false;
   knowBtn.disabled = false;
@@ -525,14 +572,22 @@ choices.onclick = e=>{
   if(sel === q.correct){
     solved = true;
     knowBtn.disabled = true;
-    showOverlayTemp("正解！","ok", () => {
+    const nowT = (window.performance && performance.now) ? performance.now() : Date.now();
+    const elapsedMs = Math.max(0, nowT - questionStart);
+    totalTimeMs += elapsedMs;
+    showOverlayTemp("正解！","ok");
+    if(correctTimer) clearTimeout(correctTimer);
+    correctTimer = setTimeout(()=>{
       showReviewChoices(q.correct);
-
       const {active} = activePack();
+      if(qi === active.length - 1){
+        setReviewTime("この問題にかかった時間：" + fmtSec(elapsedMs) + "\\n" + "合計でかかった時間：" + fmtSec(totalTimeMs));
+      }else{
+        setReviewTime("この問題にかかった時間：" + fmtSec(elapsedMs));
+      }
       if(qi < active.length-1){
         nextBtn.style.display = "inline-block";
       }else{
-        // showOverlayPersist("終了","ok");
         if(endUrl){
           nextBtn.textContent = "次へ";
           nextBtn.style.display = "inline-block";
@@ -541,8 +596,8 @@ choices.onclick = e=>{
           restartBtn.style.display = "inline-block";
         }
       }
-    });
-  }else{
+    }, 1250);
+}else{
     showOverlayTemp("もう一度考えよう","ng");
   }
 };
@@ -560,7 +615,8 @@ nextBtn.onclick = ()=>{
   qi++;
   renderQuestion();
 };
-restartBtn.onclick = ()=>{ qi = 0; renderQuestion(); };
+restartBtn.onclick = ()=>{
+  totalTimeMs = 0; qi = 0; renderQuestion(); };
 
 function showOverlayTemp(text,cls,after){
   overlay.textContent = text;
@@ -1206,6 +1262,19 @@ if(btnMoveDown){
       loadEditFields();
     }
   });
+}
+
+function fmtSec(ms){
+  const s = ms/1000;
+  return (Math.round(s*10)/10).toFixed(1) + "秒";
+}
+function setReviewTime(text){
+  if(!reviewTime) return;
+  reviewTime.textContent = text || "";
+}
+function clearReviewTime(){
+  if(!reviewTime) return;
+  reviewTime.textContent = "";
 }
 </script>
 
